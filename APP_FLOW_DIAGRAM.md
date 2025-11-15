@@ -36,12 +36,29 @@ graph TD
     Profile --> Logout[Logout]
     Logout --> Login
 
-    style Start fill:#90EE90
-    style Home fill:#87CEEB
-    style Encrypt fill:#FFD700
-    style Decrypt fill:#FF69B4
-    style Profile fill:#DDA0DD
-    style Login fill:#98FB98
+    %% Better contrast colors with white text
+    style Start fill:#2e7d32,stroke:#1b5e20,stroke-width:3px,color:#fff
+    style Home fill:#1565c0,stroke:#0d47a1,stroke-width:3px,color:#fff
+    style Encrypt fill:#f57c00,stroke:#e65100,stroke-width:3px,color:#fff
+    style Decrypt fill:#c62828,stroke:#b71c1c,stroke-width:3px,color:#fff
+    style Profile fill:#6a1b9a,stroke:#4a148c,stroke-width:3px,color:#fff
+    style Login fill:#2e7d32,stroke:#1b5e20,stroke-width:3px,color:#fff
+    style VerifyEmail fill:#558b2f,stroke:#33691e,stroke-width:3px,color:#fff
+
+    style CheckAuth fill:#424242,stroke:#212121,stroke-width:2px,color:#fff
+    style Choose fill:#424242,stroke:#212121,stroke-width:2px,color:#fff
+
+    style E1 fill:#ef6c00,stroke:#e65100,stroke-width:2px,color:#fff
+    style E2 fill:#ef6c00,stroke:#e65100,stroke-width:2px,color:#fff
+    style E3 fill:#ef6c00,stroke:#e65100,stroke-width:2px,color:#fff
+    style E4 fill:#ef6c00,stroke:#e65100,stroke-width:2px,color:#fff
+
+    style D1 fill:#d32f2f,stroke:#b71c1c,stroke-width:2px,color:#fff
+    style D2 fill:#d32f2f,stroke:#b71c1c,stroke-width:2px,color:#fff
+    style D3 fill:#d32f2f,stroke:#b71c1c,stroke-width:2px,color:#fff
+    style D4 fill:#d32f2f,stroke:#b71c1c,stroke-width:2px,color:#fff
+
+    style Logout fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
 ```
 
 ## 📋 Detailed Flow Descriptions
