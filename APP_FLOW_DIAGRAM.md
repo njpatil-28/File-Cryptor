@@ -61,10 +61,6 @@ graph TD
     style Logout fill:#7b1fa2,stroke:#4a148c,stroke-width:2px,color:#fff
 ```
 
-## 📋 Detailed Flow Descriptions
-
-### 1. **Authentication Flow**
-
 ```
 
 ## 🔑 Key Components
@@ -139,5 +135,4 @@ Login → Home Screen (3 Tabs)
 
 ---
 
-**Note**: All file operations maintain original filenames and extensions through the encryption/decryption cycle.
 ```
