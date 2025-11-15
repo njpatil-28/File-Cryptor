@@ -130,9 +130,3 @@ Login → Home Screen (3 Tabs)
 ├─ Encrypt: Pick File → Set Password → Encrypt → Save/Share/Upload
 ├─ Decrypt: Pick File/Cloud File → Enter Password → Decrypt → Save
 └─ Profile: View Info → Logout
-
-```
-
-
-
-```
