@@ -1,6 +1,6 @@
 # File Cryptor - Complete Application Flow Diagram
 
-## 🔐 Complete Application Flow
+## 🔐 Flow
 
 ```mermaid
 graph TD
