@@ -26,7 +26,7 @@ graph TD
     E4 --> Home
 
     %% Decryption Flow
-    Decrypt --> D1[1. Select Encrypted File<br/>Local or Cloud]
+    Decrypt --> D1[1. Select Encrypted File - Local or Cloud]
     D1 --> D2[2. Enter Password]
     D2 --> D3[3. Decrypt File]
     D3 --> D4[4. Save to Downloads]
@@ -67,58 +67,78 @@ graph TD
 
 ```mermaid
 flowchart TD
-    subgraph Encryption Process
-      SE([Start Encryption]) --> SF[Select File<br/>(single or multiple)]
-      SF --> FV{File Valid?}
-      FV -->|No| ERR1[Show Error: Invalid/Unreadable File]
-      ERR1 --> ENDERR([Abort])
-      FV -->|Yes| PA[Password / Passphrase or Key Input]
-      PA --> CH{Choose Mode}
-      CH -->|Password-based| KDF[Generate Salt & Derive Key<br/>(PBKDF2 / Argon2)]
-      CH -->|Key / Public Key| KEYREADY[Use Provided Key / Hybrid RSA wrap]
-      KDF --> IVGEN[Generate IV / Nonce]
-      KEYREADY --> IVGEN
-      IVGEN --> ALG[Select Algorithm<br/>AES-256-GCM / ChaCha20-Poly1305 / Custom]
-      ALG --> STREAM{Large file?}
-      STREAM -->|Yes| STREAM_ENC[Stream encrypt in chunks<br/>(read → encrypt → write)]
-      STREAM -->|No| BUF_ENC[Buffer & encrypt whole file]
-      STREAM_ENC --> AUTH[Compute Auth Tag / MAC]
-      BUF_ENC --> AUTH
-      AUTH --> PACKAGE[Create Package: ciphertext + salt + iv + tag + metadata]
-      PACKAGE --> SIGN[Optional: Sign or compute checksum (SHA-256)]
-      SIGN --> SAVEOPT{Save / Share / Upload}
-      SAVEOPT -->|Save Local| SAVELOC[Save to chosen destination]
-      SAVEOPT -->|Share| SHARE[Open share dialog / copy link]
-      SAVEOPT -->|Upload| UPLOAD[Upload to cloud provider]
-      SAVELOC --> SUCCESS[Show Success / Provide file info]
-      SHARE --> SUCCESS
-      UPLOAD --> SUCCESS
-      ERR2[Encryption Error] --> ENDERR
-      AUTH -->|Error| ERR2
-      SUCCESS --> END([End])
-    end
+    SE([Start Encryption]) --> GFK[Generate Random 32-byte File Key]
+    GFK --> DKFP[Derive Key from Password using PBKDF2]
+    DKFP --> ITER[Hash password+salt 1000 iterations with SHA-256]
+    ITER --> EFK[Encrypt File Key with Derived Password Key]
+    EFK --> EIVG[Generate IV for File Key Encryption - 16 bytes]
+    EIVG --> EFKE[AES-256-CBC Encrypt File Key]
+    EFKE --> FIVG[Generate IV for File Data Encryption - 16 bytes]
+    FIVG --> EFD[AES-256-CBC Encrypt File Data with File Key]
+    EFD --> PKG[Build Final Package]
+    PKG --> STRUCT[4 bytes fileName length + fileName + 4 bytes key length + encrypted key + IV + encrypted data]
+    STRUCT --> SAVE[Save as .enc file]
+    SAVE --> SUCCESS([Encryption Complete])
 
     %% Styling
     style SE fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style SF fill:#1976d2,stroke:#0d47a1,color:#fff
-    style FV fill:#424242,stroke:#212121,color:#fff
-    style PA fill:#ef6c00,stroke:#e65100,color:#fff
-    style KDF fill:#6a1b9a,stroke:#4a148c,color:#fff
-    style KEYREADY fill:#6a1b9a,stroke:#4a148c,color:#fff
-    style IVGEN fill:#c62828,stroke:#b71c1c,color:#fff
-    style ALG fill:#0d47a1,stroke:#0a3d91,color:#fff
-    style STREAM_ENC fill:#f57c00,stroke:#e65100,color:#fff
-    style BUF_ENC fill:#f57c00,stroke:#e65100,color:#fff
-    style AUTH fill:#4caf50,stroke:#388e3c,color:#fff
-    style PACKAGE fill:#29b6f6,stroke:#0288d1,color:#fff
-    style SIGN fill:#8e24aa,stroke:#6a1b9a,color:#fff
-    style SAVEOPT fill:#424242,stroke:#212121,color:#fff
-    style SAVELOC fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style SHARE fill:#1565c0,stroke:#0d47a1,color:#fff
-    style UPLOAD fill:#7b1fa2,stroke:#4a148c,color:#fff
-    style SUCCESS fill:#2e7d32,stroke:#1b5e20,color:#fff
-    style ERR1 fill:#b71c1c,stroke:#7f0000,color:#fff
-    style ERR2 fill:#b71c1c,stroke:#7f0000,color:#fff
+    style GFK fill:#1976d2,stroke:#0d47a1,color:#fff
+    style DKFP fill:#6a1b9a,stroke:#4a148c,color:#fff
+    style ITER fill:#6a1b9a,stroke:#4a148c,color:#fff
+    style EFK fill:#ef6c00,stroke:#e65100,color:#fff
+    style EIVG fill:#c62828,stroke:#b71c1c,color:#fff
+    style EFKE fill:#f57c00,stroke:#e65100,color:#fff
+    style FIVG fill:#c62828,stroke:#b71c1c,color:#fff
+    style EFD fill:#f57c00,stroke:#e65100,color:#fff
+    style PKG fill:#29b6f6,stroke:#0288d1,color:#fff
+    style STRUCT fill:#0d47a1,stroke:#0a3d91,color:#fff
+    style SAVE fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style SUCCESS fill:#4caf50,stroke:#388e3c,color:#fff
+```
+
+---
+
+## 🔓 Decryption Process (Detailed Diagram)
+
+```mermaid
+flowchart TD
+    SD([Start Decryption]) --> RDF[Read .enc File Bytes]
+    RDF --> EFNL[Extract fileName Length - first 4 bytes]
+    EFNL --> EFN[Extract Original fileName]
+    EFN --> EKL[Extract Key Length - next 4 bytes]
+    EKL --> EEK[Extract Encrypted File Key bytes]
+    EEK --> DKFP[Derive Key from Password using PBKDF2]
+    DKFP --> ITER[Hash password+salt 1000 iterations with SHA-256]
+    ITER --> EIV[Extract IV for Key Decryption - next 16 bytes]
+    EIV --> DFK[AES-256-CBC Decrypt File Key with Password Key]
+    DFK --> EFIV[Extract IV for File Decryption - next 16 bytes]
+    EFIV --> EED[Extract Remaining Encrypted Data]
+    EED --> DFD[AES-256-CBC Decrypt File Data with File Key]
+    DFD --> SAVEF[Save Decrypted File with Original Name]
+    SAVEF --> SUCCESS([Decryption Complete])
+
+    DFK -->|Wrong Password| ERR[Decryption Error]
+    DFD -->|Corrupted Data| ERR
+    ERR --> ABORT([Abort])
+
+    %% Styling
+    style SD fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style RDF fill:#1976d2,stroke:#0d47a1,color:#fff
+    style EFNL fill:#0d47a1,stroke:#0a3d91,color:#fff
+    style EFN fill:#0d47a1,stroke:#0a3d91,color:#fff
+    style EKL fill:#0d47a1,stroke:#0a3d91,color:#fff
+    style EEK fill:#29b6f6,stroke:#0288d1,color:#fff
+    style DKFP fill:#6a1b9a,stroke:#4a148c,color:#fff
+    style ITER fill:#6a1b9a,stroke:#4a148c,color:#fff
+    style EIV fill:#c62828,stroke:#b71c1c,color:#fff
+    style DFK fill:#f57c00,stroke:#e65100,color:#fff
+    style EFIV fill:#c62828,stroke:#b71c1c,color:#fff
+    style EED fill:#29b6f6,stroke:#0288d1,color:#fff
+    style DFD fill:#f57c00,stroke:#e65100,color:#fff
+    style SAVEF fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style SUCCESS fill:#4caf50,stroke:#388e3c,color:#fff
+    style ERR fill:#b71c1c,stroke:#7f0000,color:#fff
+    style ABORT fill:#b71c1c,stroke:#7f0000,color:#fff
 ```
 
 ---
@@ -208,28 +228,3 @@ Login → Home Screen (3 Tabs)
 ├─ Encrypt: Pick File → Set Password → Encrypt → Save/Share/Upload  
 ├─ Decrypt: Pick File/Cloud File → Enter Password → Decrypt → Save  
 └─ Profile: View Info → Logout
-
----
-
-## Files & Deliverables Included
-
-This single Markdown file contains:
-
-- App flow mermaid diagram
-- Detailed encryption process mermaid diagram
-- Updated key components and DB model
-- Security summary and recommendations
-- UX flow summary
-
----
-
-What I did: I packaged the complete, updated application flow and the detailed encryption process into a single Markdown file containing both diagrams and clear technical/spec details so you can drop it into your repo or documentation.
-
-What's next: I can (pick one)
-
-- produce a complementary decryption diagram that mirrors the encryption package (with parsing/verifying metadata),
-- convert these mermaid diagrams into PNG/SVG files and attach them,
-- generate a machine-readable JSON/YAML schema for the EncryptedFile metadata,
-- or update the spec to use stronger KDF/AEAD defaults and produce migration notes.
-
-Tell me which of those you'd like me to do next and I'll proceed.
